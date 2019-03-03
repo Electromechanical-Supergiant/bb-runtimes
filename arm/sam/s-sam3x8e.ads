@@ -2,7 +2,7 @@
 --                                                                          --
 --                         GNAT RUN-TIME COMPONENTS                         --
 --                                                                          --
---                         S Y S T E M . S A M 3 X 8 S                      --
+--                         S Y S T E M . S A M 3 X 8 E                      --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -33,11 +33,11 @@
 --  microcontrollers from Atmel. Definitions are taken from 'Sam3x8e Series'
 --  datasheet (document Atmel-11057C-ATARM-SAM3X-SAM3A-Datasheet_23-Mar-15).
 
-package System.SAM3X8E is
+package System.SAM3X8 is
    pragma No_Elaboration_Code_All;
    --  Allow user code with pragma No_Elaboration_Code_All to use this package
 
-   pragma Preelaborate (System.SAM3X8E);
+   pragma Preelaborate (System.SAM3X8);
 
    pragma Suppress (Alignment_Check);
    --  Avoid any warnings for address clauses on variables of type record.
@@ -772,4 +772,4 @@ package System.SAM3X8E is
    USART2_ID : constant := 19;
    USART3_ID : constant := 20;
 
-end System.SAM3X8E;
+end System.SAM3X8;
