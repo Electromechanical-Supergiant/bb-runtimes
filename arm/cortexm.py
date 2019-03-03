@@ -178,19 +178,24 @@ class Sam(ArmV7MTarget):
 
     @property
     def system_ads(self):
-        # No runtime full
+        # No runtime full -- WHY NOT?
         return super(Sam, self).system_ads
         # return {'zfp': ret['zfp'],
                 # 'ravenscar-sfp': ret['ravenscar-sfp']}
 
     @property
     def compiler_switches(self):
+        switches = ('-mlittle-endian', '-mthumb')
         if self.has_single_precision_fpu:
-            return ('-mlittle-endian', '-mthumb', '-mhard-float', '-mfpu=fpv4-sp-d16')
-        if self.name == 'sam3x8e':
-            return ('-mlittle-endian', '-mthumb', '-mcpu=cortex-m3')
+            switches += ('-mhard-float', '-mfpu=fpv4-sp-d16')
         else:
-            return ('-mlittle-endian', '-mthumb', '-mcpu=cortex-m4')
+            switches += ('-msoft-float')
+        
+        if self.name == 'sam3x8e':
+            switches += ('-mcpu=cortex-m3')
+        else:
+            switches += ('-mcpu=cortex-m4')
+        return switches
 
     def __init__(self, board):
         assert board in ('sam4s', 'samg55', 'sam3x8e'), "Unexpected SAM board %s" % board
@@ -202,9 +207,13 @@ class Sam(ArmV7MTarget):
             loader=('SAMBA', 'ROM'))
             
         if board == 'sam3x8e':
-            self.add_sources('crt0', ['arm/sam/s-sam3x8e.ads'])
+            self.add_sources('crt0', [
+                'arm/sam/s-sam3x8e.ads',
+                'src/s-textio__sam3x8e.adb'])
         else:
-            self.add_sources('crt0', ['arm/sam/s-sam4s.ads'])
+            self.add_sources('crt0', [
+                'arm/sam/s-sam4s.ads',
+                'src/s-textio__sam4s.adb'])
             
         self.add_sources('crt0', [
             'arm/sam/%s/board_config.ads' % self.name,
@@ -212,8 +221,7 @@ class Sam(ArmV7MTarget):
             'arm/sam/%s/svd/i-%s.ads' % (self.name, self.name),
             'arm/sam/%s/svd/i-%s-efc.ads' % (self.name, self.name),
             'arm/sam/%s/svd/i-%s-pmc.ads' % (self.name, self.name),
-            'arm/sam/%s/svd/i-%s-sysc.ads' % (self.name, self.name),
-            'src/s-textio__sam4s.adb'])
+            'arm/sam/%s/svd/i-%s-sysc.ads' % (self.name, self.name)])
         # FIXME: s-textio.adb is invalid for the g55
 
         # ravenscar support

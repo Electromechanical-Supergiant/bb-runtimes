@@ -33,7 +33,7 @@ pragma Warnings (Off);
 --  it seems that for some reason it just wouldn't find the package.  Calling
 --  the package "System.Sam3x8" does work.
 --
-with System.SAM3X8E; use System.SAM3X8E;
+with System.SAM3X8; use System.SAM3X8;
 pragma Warnings (On);
 
 with Interfaces.SAM3X8E;        use Interfaces.SAM3X8E;
