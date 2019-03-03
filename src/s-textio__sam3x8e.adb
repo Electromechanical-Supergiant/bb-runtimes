@@ -29,7 +29,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Minimal version of Text_IO body for use on SAM4S, using UART1
+--  Minimal version of Text_IO body for use on SAM4S, using UART
 
 with System.SAM3X8; use System.SAM3X8;
 
@@ -43,7 +43,7 @@ package body System.Text_IO is
    ---------
 
    function Get return Character is
-      (Character'Val (UART1.UART_RHR and 16#FF#));
+      (Character'Val (UART.UART_RHR and 16#FF#));
 
    ----------------
    -- Initialize --
@@ -62,7 +62,7 @@ package body System.Text_IO is
 
       --  Power-up clocks
 
-      PMC.PMC_PCER0 := 2 ** UART1_ID + 2 ** PIOB_ID;
+      PMC.PMC_PCER0 := 2 ** UART_ID + 2 ** PIOB_ID;
 
       --  Setup IO pins
 
@@ -70,12 +70,11 @@ package body System.Text_IO is
       PIOB.ODR := Uart_Ports;
       PIOB.PUER := PB3;
       PIOB.MDDR := Uart_Ports;
-      PIOB.ABCDSR1 := PIOB.ABCDSR1 and not Uart_Ports;
-      PIOB.ABCDSR2 := PIOB.ABCDSR2 and not Uart_Ports;
+      PIOB.ABSR := PIOB.ABSR and not Uart_Ports;
 
-      UART1.UART_BRGR := 120_000_000 / (16 * Baudrate);
-      UART1.UART_MR := UART_MR.CHMODE_NORMAL or UART_MR.PAR_NO;
-      UART1.UART_CR := UART_CR.TXEN or UART_CR.RXEN;
+      UART.UART_BRGR := 120_000_000 / (16 * Baudrate);
+      UART.UART_MR := UART_MR.CHMODE_NORMAL or UART_MR.PAR_NO;
+      UART.UART_CR := UART_CR.TXEN or UART_CR.RXEN;
    end Initialize;
 
    -----------------
@@ -83,14 +82,14 @@ package body System.Text_IO is
    -----------------
 
    function Is_Tx_Ready return Boolean is
-      ((UART1.UART_SR and UART_SR.TXRDY) /= 0);
+      ((UART.UART_SR and UART_SR.TXRDY) /= 0);
 
    -----------------
    -- Is_Rx_Ready --
    -----------------
 
    function Is_Rx_Ready return Boolean is
-      ((UART1.UART_SR and UART_SR.RXRDY) /= 0);
+      ((UART.UART_SR and UART_SR.RXRDY) /= 0);
 
    ---------
    -- Put --
@@ -98,7 +97,7 @@ package body System.Text_IO is
 
    procedure Put (C : Character) is
    begin
-      UART1.UART_THR := Character'Pos (C);
+      UART.UART_THR := Character'Pos (C);
    end Put;
 
    ----------------------------

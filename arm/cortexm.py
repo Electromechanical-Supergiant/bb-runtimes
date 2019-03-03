@@ -2,6 +2,8 @@
 from support.bsp_sources.archsupport import ArchSupport
 from support.bsp_sources.target import Target
 
+import glob
+
 
 class CortexMArch(ArchSupport):
     @property
@@ -189,12 +191,12 @@ class Sam(ArmV7MTarget):
         if self.has_single_precision_fpu:
             switches += ('-mhard-float', '-mfpu=fpv4-sp-d16')
         else:
-            switches += ('-msoft-float')
+            switches += ('-msoft-float', ) # single element tuple
         
         if self.name == 'sam3x8e':
-            switches += ('-mcpu=cortex-m3')
+            switches += ('-mcpu=cortex-m3', )
         else:
-            switches += ('-mcpu=cortex-m4')
+            switches += ('-mcpu=cortex-m4', )
         return switches
 
     def __init__(self, board):
@@ -208,20 +210,21 @@ class Sam(ArmV7MTarget):
             
         if board == 'sam3x8e':
             self.add_sources('crt0', [
-                'arm/sam/s-sam3x8e.ads',
-                'src/s-textio__sam3x8e.adb'])
+                'arm/sam/s-sam3x8.ads',
+                'src/s-textio__sam3x8e.adb',
+                glob.glob('arm/sam/sam3x8e/svd/i-sam3x8e*.ads')]) # add all BSP sources
         else:
             self.add_sources('crt0', [
                 'arm/sam/s-sam4s.ads',
-                'src/s-textio__sam4s.adb'])
+                'src/s-textio__sam4s.adb',
+                'arm/sam/%s/svd/i-%s.ads' % (self.name, self.name),
+                'arm/sam/%s/svd/i-%s-efc.ads' % (self.name, self.name),
+                'arm/sam/%s/svd/i-%s-pmc.ads' % (self.name, self.name),
+                'arm/sam/%s/svd/i-%s-sysc.ads' % (self.name, self.name)])
             
         self.add_sources('crt0', [
             'arm/sam/%s/board_config.ads' % self.name,
-            'arm/sam/%s/setup_pll.adb' % self.name,
-            'arm/sam/%s/svd/i-%s.ads' % (self.name, self.name),
-            'arm/sam/%s/svd/i-%s-efc.ads' % (self.name, self.name),
-            'arm/sam/%s/svd/i-%s-pmc.ads' % (self.name, self.name),
-            'arm/sam/%s/svd/i-%s-sysc.ads' % (self.name, self.name)])
+            'arm/sam/%s/setup_pll.adb' % self.name])
         # FIXME: s-textio.adb is invalid for the g55
 
         # ravenscar support
