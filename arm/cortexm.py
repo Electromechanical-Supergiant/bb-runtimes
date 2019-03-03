@@ -153,7 +153,6 @@ class SamCommonArchSupport(ArchSupport):
         self.add_linker_script('arm/sam/common-ROM.ld', loader='ROM')
 
         self.add_sources('crt0', [
-            'arm/sam/s-sam4s.ads',
             'arm/sam/start-rom.S',
             'arm/sam/start-ram.S',
             'arm/sam/setup_pll.ads'])
@@ -172,7 +171,7 @@ class Sam(ArmV7MTarget):
 
     @property
     def has_single_precision_fpu(self):
-        if self.board == 'sam4s':
+        if self.board == 'sam4s' or self.board == 'sam3x8e':
             return False
         else:
             return True
@@ -180,34 +179,40 @@ class Sam(ArmV7MTarget):
     @property
     def system_ads(self):
         # No runtime full
-        ret = super(Sam, self).system_ads
-        return {'zfp': ret['zfp'],
-                'ravenscar-sfp': ret['ravenscar-sfp']}
+        return super(Sam, self).system_ads
+        # return {'zfp': ret['zfp'],
+                # 'ravenscar-sfp': ret['ravenscar-sfp']}
 
     @property
     def compiler_switches(self):
-        base = ('-mlittle-endian', '-mthumb', '-mcpu=cortex-m4')
-
-        if not self.has_single_precision_fpu:
-            return base
+        if self.has_single_precision_fpu:
+            return ('-mlittle-endian', '-mthumb', '-mhard-float', '-mfpu=fpv4-sp-d16')
+        if self.name == 'sam3x8e':
+            return ('-mlittle-endian', '-mthumb', '-mcpu=cortex-m3')
         else:
-            return base + ('-mhard-float', '-mfpu=fpv4-sp-d16', )
+            return ('-mlittle-endian', '-mthumb', '-mcpu=cortex-m4')
 
     def __init__(self, board):
-        assert board in ('sam4s', 'samg55'), "Unexpected SAM board %s" % board
+        assert board in ('sam4s', 'samg55', 'sam3x8e'), "Unexpected SAM board %s" % board
         self.board = board
         super(Sam, self).__init__()
 
         self.add_linker_script(
             'arm/sam/%s/memory-map.ld' % self.name,
             loader=('SAMBA', 'ROM'))
+            
+        if board == 'sam3x8e':
+            self.add_sources('crt0', ['arm/sam/s-sam3x8e.ads'])
+        else:
+            self.add_sources('crt0', ['arm/sam/s-sam4s.ads'])
+            
         self.add_sources('crt0', [
             'arm/sam/%s/board_config.ads' % self.name,
             'arm/sam/%s/setup_pll.adb' % self.name,
-            'arm/sam/%s/svd/i-sam.ads' % self.name,
-            'arm/sam/%s/svd/i-sam-efc.ads' % self.name,
-            'arm/sam/%s/svd/i-sam-pmc.ads' % self.name,
-            'arm/sam/%s/svd/i-sam-sysc.ads' % self.name,
+            'arm/sam/%s/svd/i-%s.ads' % (self.name, self.name),
+            'arm/sam/%s/svd/i-%s-efc.ads' % (self.name, self.name),
+            'arm/sam/%s/svd/i-%s-pmc.ads' % (self.name, self.name),
+            'arm/sam/%s/svd/i-%s-sysc.ads' % (self.name, self.name),
             'src/s-textio__sam4s.adb'])
         # FIXME: s-textio.adb is invalid for the g55
 
@@ -622,7 +627,8 @@ class CortexM3(ArmV7MTarget):
 
     @property
     def system_ads(self):
-        return {'zfp': 'system-xi-arm.ads'}
+        return {'zfp': 'system-xi-arm.ads',
+                'ravenscar-full': 'system-xi-arm-full.ads'}
 
 
 class CortexM4(ArmV7MTarget):
